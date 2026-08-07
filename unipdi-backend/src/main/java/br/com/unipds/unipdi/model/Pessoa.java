@@ -14,6 +14,16 @@ public class Pessoa {
 
     private String nome;
 
+    public String getCurriculo() {
+        return curriculo;
+    }
+
+    public void setCurriculo(String curriculo) {
+        this.curriculo = curriculo;
+    }
+
+    private String curriculo;
+
     public Pessoa(String matricula, String nome) {
         this.matricula = matricula;
         this.nome = nome;

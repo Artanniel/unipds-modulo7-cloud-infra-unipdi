@@ -5,14 +5,20 @@ import PessoaForm from "../components/PessoaForm";
 import Card from "../components/Card";
 import Header from "../components/Header";
 import Button from "../components/Button";
+import CurriculoModal from "../components/CurriculoModal";
 
 export default function PessoasPage() {
   const [pessoas, setPessoas] = useState([]);
+  const [selectedPessoaCurriculo, setSelectedPessoaCurriculo] = useState(null);
   const navigate = useNavigate();
 
   const carregarPessoas = async () => {
     const res = await api.get("/pessoas");
     setPessoas(res.data);
+    if (selectedPessoaCurriculo) {
+      const atualizada = res.data.find(p => p.id === selectedPessoaCurriculo.id || p.matricula === selectedPessoaCurriculo.matricula);
+      if (atualizada) setSelectedPessoaCurriculo(atualizada);
+    }
   };
 
   useEffect(() => { carregarPessoas(); }, []);
@@ -38,9 +44,14 @@ export default function PessoasPage() {
                     <div style={{fontWeight:700}}>{p.nome}</div>
                     <div className="subtle">{p.matricula}</div>
                   </div>
-                  <Button size="small" onClick={() => navigate(`/pessoas/${p.matricula}`)}>
-                    Gerenciar PDI
-                  </Button>
+                  <div style={{display:'flex', gap:8}}>
+                    <Button size="small" onClick={() => navigate(`/pessoas/${p.matricula}`)}>
+                      Gerenciar PDI
+                    </Button>
+                    <Button size="small" variant="ghost" onClick={() => setSelectedPessoaCurriculo(p)}>
+                      Currículo
+                    </Button>
+                  </div>
                 </li>
               ))}
 
@@ -49,6 +60,14 @@ export default function PessoasPage() {
           </Card>
         </div>
       </div>
+
+      {selectedPessoaCurriculo && (
+        <CurriculoModal
+          pessoa={selectedPessoaCurriculo}
+          onClose={() => setSelectedPessoaCurriculo(null)}
+          onSuccess={carregarPessoas}
+        />
+      )}
     </>
   );
 }

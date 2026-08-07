@@ -1,0 +1,19 @@
+# Environment variables / Credentials
+.env
+.env.local
+*.pem
+*.key
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Maven / Java
+unipdi-backend/target/
+
+# Node / React
+unipdi-frontend/node_modules/
+unipdi-frontend/dist/
+unipdi-frontend/.vite/
