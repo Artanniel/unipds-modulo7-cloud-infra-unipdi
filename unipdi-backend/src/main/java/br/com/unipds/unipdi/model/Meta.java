@@ -1,11 +1,11 @@
 package br.com.unipds.unipdi.model;
 
-import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
+import java.util.UUID;
+
+@DynamoDbBean
 public class Meta {
-    @Id
     private String id;
     private String descricao;
     private boolean concluida;
@@ -13,7 +13,7 @@ public class Meta {
     public Meta() {}
 
     public Meta(String descricao, boolean concluida) {
-        this.id = new ObjectId().toString();
+        this.id = UUID.randomUUID().toString();
         this.descricao = descricao;
         this.concluida = concluida;
     }
@@ -22,11 +22,24 @@ public class Meta {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public String getDescricao() {
         return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 
     public boolean isConcluida() {
         return concluida;
     }
+
+    public void setConcluida(boolean concluida) {
+        this.concluida = concluida;
+    }
 }
+

@@ -24,7 +24,7 @@ public class PdiService {
 
     public PdiResponseDto criarPdi(PdiRequestDto dto) {
         pessoaRepository.findByMatricula(dto.matricula())
-                .orElseThrow(() -> new RuntimeException("Pessoa não encontrada para matrícula " + dto.matricula()));
+                .orElseThrow(() -> new IllegalArgumentException("Pessoa não encontrada para a matrícula " + dto.matricula() + ". Cadastre a pessoa antes de criar o PDI."));
 
         Pdi pdi = new Pdi(dto.matricula(), dto.dataInicio(), dto.dataFim(), dto.descricao());
         pdiRepository.save(pdi);

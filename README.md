@@ -1,76 +1,101 @@
 # UniPDI - Sistema de Plano de Desenvolvimento Individual
 
-**UniPDI** é uma aplicação desenvolvida para que estudantes e profissionais possam cadastrar e gerenciar seus **Planos de Desenvolvimento Individual (PDI)** e **Currículos** de forma integrada aos serviços da AWS.  
-Este projeto tem objetivo educacional e prático, abrangendo arquitetura de microserviços, integração com **AWS S3** para armazenamento de arquivos em nuvem, **Docker**, **Kubernetes** e **Cloud Computing**.
+**UniPDI** é uma aplicação desenvolvida para que estudantes e profissionais possam cadastrar e gerenciar seus **Planos de Desenvolvimento Individual (PDI)**, **Metas** e **Currículos** de forma 100% integrada aos serviços em nuvem da **AWS (Amazon Web Services)**.  
+
+Este projeto possui objetivo educacional e prático no âmbito de arquitetura de software, englobando microsserviços, integração com **AWS DynamoDB** (banco NoSQL), **AWS S3** (armazenamento de arquivos em nuvem), **Docker**, **Kubernetes** e **Cloud Computing**.
 
 ---
 
 ## 🏗️ **Arquitetura da Aplicação**
 
-A aplicação é composta pelos seguintes componentes:
+A aplicação foi migrada e modernizada para uma arquitetura serverless/cloud-native:
 
 - **Backend**  
-  - Linguagem: **Java 21**  
-  - Framework: **Spring Boot 3.5.4** (com Spring Cloud AWS S3 Starter 3.3.0)  
-  - Banco de Dados: **MongoDB** (gerenciamento de Pessoas, PDIs e Metas)  
-  - Armazenamento em Nuvem: **AWS S3 / LocalStack** (armazenamento persistente de currículos em formato PDF, DOCX, Imagens)  
-  - Responsável pelas APIs RESTful e integração de armazenamento.
+  - **Linguagem**: Java 21  
+  - **Framework**: Spring Boot 3.5.4 (Spring Cloud AWS 3.3.0)  
+  - **Banco de Dados NoSQL**: **AWS DynamoDB** (gerenciamento desacoplado de `Pessoa`, `Pdi` e `Meta` via DynamoDB Enhanced Client)  
+  - **Armazenamento de Objetos**: **AWS S3** (armazenamento persistente de currículos em PDF, DOCX e Imagens)  
+  - **Resiliência e Validação**: Tratamento global de exceções (`GlobalExceptionHandler`), resolvedor de nomes de tabela mantendo case-sensitivity (`DynamoDbTableNameResolver`) e inicializador automático de tabelas no DynamoDB.
 
 - **Frontend**  
-  - Framework: **React 19** com **Vite**  
-  - Estilização: **CSS Modules & Global System**  
-  - Biblioteca HTTP: **Axios**  
-  - Interface moderna com suporte a cadastros, gestão de PDIs e Modal Interativo para Upload, Download e Exclusão de Currículos no S3.
+  - **Framework**: React 19 com Vite  
+  - **Estilização**: CSS Modules & Design System Customizado  
+  - **Comunicação HTTP**: Axios  
+  - **Interface**: Dashboard moderno para gestão de PDIs, acompanhamento de metas e Modal Interativo para Upload, Download e Exclusão de Currículos no AWS S3.
 
 ---
 
-## ☁️ **Recursos de Armazenamento na Nuvem (AWS S3)**
+## ☁️ **Integração Cloud AWS (DynamoDB & S3)**
 
-O sistema conta com suporte nativo ao **AWS S3** (ou **LocalStack** para desenvolvimento local) para a gestão de documentos de currículos associados a cada pessoa cadastrada.
+O sistema opera de forma integrada com a nuvem da AWS:
 
-### 🖼️ **Demonstração do Fluxo de Upload e Armazenamento**
+1. **AWS DynamoDB**: Armazena as entidades do sistema (`Pessoa` e `Pdi` com metas aninhadas) em tabelas de alta performance (*Pay-Per-Request*).
+2. **AWS S3**: Armazena os arquivos digitais de currículos associados aos usuários com chaves UUID únicas.
 
-#### 1. Interface Web - Modal de Gestão de Currículo
-O modal interativo permite enviar novos arquivos para o S3, visualizar o status, baixar o arquivo armazenado ou excluí-lo diretamente.
+---
+
+## 🖼️ **Demonstração Visual & Evidências no Console AWS**
+
+### 1. Visualização do Painel do AWS DynamoDB & AWS S3
+Demonstração em tempo real mostrando o cadastro, persistência e consulta de dados diretamente no **Painel do Console AWS DynamoDB** (tabelas `Pessoa` e `Pdi`), combinados ao upload e gestão de currículos em nuvem no **AWS S3**:
+
+![Painel do AWS DynamoDB e Armazenamento no AWS S3](images/ComunicateWithAWS_S3_and_DynamoDB.gif)
+
+### 2. Comunicação e Integração no Painel AWS DynamoDB
+Animação detalhada demonstrando a sincronização dos registros e requisições da aplicação com o **Painel do AWS DynamoDB** na nuvem da AWS:
+
+![Integração em Tempo Real com o Painel AWS DynamoDB](images/ComunicateWithAWS.gif)
+
+### 3. Modal de Gestão de Currículo no Frontend
+Interface Web interativa para upload de novos arquivos de currículo para o S3, acompanhamento de status e ações de download/exclusão:
 
 ![Modal de Upload de Currículo para o AWS S3](images/Upload_S3.png)
 
-#### 2. Armazenamento no AWS S3
-Os arquivos enviados recebem uma chave única UUID para evitar colisões e são salvos diretamente no bucket configurado no S3.
+### 4. Confirmação de Arquivos no Bucket AWS S3
+Registro dos arquivos armazenados com identificadores únicos (UUID) no bucket do AWS S3:
 
 ![Arquivo Confirmado no Bucket AWS S3](images/fileInS3.png)
 
 ---
 
-## 🛠️ **Endpoints da API (Arquivos & S3)**
+## 🛠️ **Endpoints da API**
 
-### **Gerenciamento Generico de Arquivos (`FileStorageController`)**
-- `POST /api/files/upload`: Realiza o upload de um arquivo Multipart (`file`) para o bucket S3 e retorna a chave gerada (`fileKey`).
-- `GET /api/files/download/{key}`: Realiza o streaming/download do arquivo armazenado no S3 através da chave.
-- `DELETE /api/files/{key}`: Remove o objeto com a chave especificada do bucket S3.
-
-### **Gerenciamento de Currículos vinculados à Pessoa (`PessoaController`)**
-- `POST /pessoas/{matricula}/curriculo`: Envia o arquivo do currículo para o S3 e vincula a chave diretamente à pessoa.
-- `PUT /pessoas/{matricula}/curriculo`: Associa uma `fileKey` existente ao cadastro da pessoa.
+### 👤 **Gestão de Pessoas (`PessoaController`)**
+- `POST /pessoas`: Cadastra uma nova pessoa no DynamoDB.
+- `GET /pessoas`: Lista todas as pessoas cadastradas.
+- `GET /pessoas/{matricula}`: Busca dados de uma pessoa pela matrícula.
+- `POST /pessoas/{matricula}/curriculo`: Envia o arquivo do currículo para o S3 e vincula a chave à pessoa.
+- `PUT /pessoas/{matricula}/curriculo`: Associa uma `fileKey` do S3 existente à pessoa.
 - `DELETE /pessoas/{matricula}/curriculo`: Remove o currículo do S3 e desvincula da pessoa.
+
+### 🎯 **Gestão de PDIs & Metas (`PdiController`)**
+- `POST /pdis`: Cria um novo PDI associado a uma pessoa cadastrada.
+- `GET /pdis/pessoa/{matricula}`: Lista todos os PDIs de uma pessoa específica.
+- `POST /pdis/{id}/metas`: Adiciona uma nova meta ao PDI.
+- `PATCH /pdis/{id}/metas/{metaId}`: Atualiza o status de conclusão de uma meta.
+
+### 📁 **Armazenamento de Arquivos S3 (`FileStorageController`)**
+- `POST /api/files/upload`: Upload genérico de arquivo Multipart (`file`) para o S3.
+- `GET /api/files/download/{key}`: Download/Streaming do arquivo via chave S3.
+- `DELETE /api/files/{key}`: Exclui o arquivo do bucket S3.
 
 ---
 
 ## 📦 **Pré-requisitos**
 
-Antes de iniciar, certifique-se de ter instalado:
+Para executar a aplicação localmente integrando com a AWS:
 
-- **Docker** e **Docker Compose**
 - **Java 21** e **Maven**
 - **Node.js (>=18)** e **npm**
+- **Credenciais AWS** (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`) configuradas no arquivo `.env`
 
 ---
 
 ## ▶️ **Como Executar o Projeto**
 
-### 🚀 **Opção 1: Inicialização Automática com o Script (`start.sh`)** [Recomendado]
+### 🚀 **Inicialização Automática com o Script (`start.sh`)** [Recomendado]
 
-Criamos um script unificado que inicia o backend e frontend em paralelo com a checagem correta de dependências:
+O script unificado carrega as variáveis de ambiente do `.env`, verifica a presença das dependências e inicia o backend e o frontend simultaneamente:
 
 ```bash
 ./start.sh
@@ -78,15 +103,9 @@ Criamos um script unificado que inicia o backend e frontend em paralelo com a ch
 
 ---
 
-### 🧱 **Opção 2: Execução Passo a Passo**
+### 🧱 **Execução Manual**
 
-#### **1. Subir os Serviços de Infraestrutura (MongoDB)**
-
-```bash
-docker-compose up -d
-```
-
-#### **2. Executar o Backend (Spring Boot)**
+#### **1. Executar o Backend (Spring Boot)**
 
 No diretório `unipdi-backend`:
 
@@ -96,7 +115,9 @@ mvn spring-boot:run
 
 O backend estará ativo em: `http://localhost:8080`
 
-#### **3. Executar o Frontend (React + Vite)**
+> 💡 **Nota:** Na inicialização, a aplicação verifica automaticamente a existência das tabelas `Pessoa` e `Pdi` no AWS DynamoDB e as cria se necessário.
+
+#### **2. Executar o Frontend (React + Vite)**
 
 No diretório `unipdi-frontend`:
 
@@ -109,49 +130,35 @@ O frontend estará ativo em: `http://localhost:5173`
 
 ---
 
-## ⚙️ **Configuração de Variáveis de Ambiente (S3)**
+## ⚙️ **Configuração de Variáveis de Ambiente (.env)**
 
-As configurações do S3 ficam centralizadas no arquivo `application.properties` do backend e podem ser sobrescritas por variáveis de ambiente:
+O arquivo `.env` na raiz do projeto centraliza as credenciais da AWS:
 
-```properties
-# Configuração AWS S3
-spring.cloud.aws.region.static=${AWS_REGION:us-east-1}
-spring.cloud.aws.credentials.access-key=${AWS_ACCESS_KEY_ID:test}
-spring.cloud.aws.credentials.secret-key=${AWS_SECRET_ACCESS_KEY:test}
-aws.s3.bucket-name=${AWS_S3_BUCKET_NAME:unipdi-bucket}
-
-# Para testes locais com LocalStack (descomente se necessário):
-# spring.cloud.aws.s3.endpoint=http://localhost:4566
+```env
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=SUA_AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY=SEU_AWS_SECRET_ACCESS_KEY
+AWS_S3_BUCKET_NAME=unipdi-bucket
 ```
 
 ---
 
-## 🔗 **Fluxo de Acesso**
+## 🔗 **Links de Acesso Local**
 
 - **Frontend (Interface Web):** [http://localhost:5173](http://localhost:5173)  
-- **Backend (Status & APIs):** [http://localhost:8080](http://localhost:8080)  
-- **MongoDB:** `localhost:27017`
-
----
-
-## 🎯 **Objetivo Educacional**
-
-Este projeto abrange os seguintes tópicos de infraestrutura e cloud:
-
-- **AWS Cloud / S3**: Armazenamento de objetos em nuvem com alta disponibilidade.
-- **Docker**: Conteinerização da aplicação e dependências.
-- **Docker Compose**: Orquestração de múltiplos serviços em ambiente de desenvolvimento.
-- **Kubernetes**: Implantação e escalabilidade em cluster.
+- **Backend (APIs & Status):** [http://localhost:8080](http://localhost:8080)  
 
 ---
 
 ## 📜 **Créditos e Autoria**
 
 - **Projeto Base & Concepção Original:**  
-  Projeto idealizado e desenvolvido com base nas aulas e estrutura fornecida pela **Professora Jaqueline**, servindo como fundamento acadêmico e prático para o projeto da disciplina de Infraestrutura Cloud (Módulo 7 - UniPDI).
+  Projeto idealizado e desenvolvido com base nas aulas e estrutura fornecida pela **Professora Jaqueline**, servindo como fundamento acadêmico e prático para a disciplina de Infraestrutura Cloud (Módulo 7 - UniPDI).
 
-- **Contribuições & Extensões (Artanniel):**  
-  - **Integração com AWS S3 / LocalStack:** Implementação completa da camada de persistência e gerenciamento de arquivos de currículos (upload, download, streaming e exclusão) via Amazon S3 no backend Spring Boot (`FileStorageController` e integração com `PessoaController`).
-  - **Interface Web para Gestão de Currículos:** Criação do modal interativo no frontend React (Vite) com upload de arquivos, feedback visual e ações de download/remoção.
-  - **Automação do Ambiente:** Criação do script unificado de inicialização (`start.sh`) para execução paralela de backend e frontend com verificação de dependências.
-  - **Documentação Técnica e Evidências:** Elaboração da documentação detalhada dos fluxos de armazenamento em nuvem, endpoints da API e registro com capturas de tela.
+- **Contribuições & Migração Cloud (Artanniel):**  
+  - **Migração Completa para AWS DynamoDB:** Eliminação do MongoDB legado e transição completa para o AWS DynamoDB usando Spring Cloud AWS e DynamoDB Enhanced Client.
+  - **Auto-Provisionamento de Tabelas DynamoDB:** Implementação de inicializador automático (`CommandLineRunner`) e resolvedor de nomes de tabela com suporte a maiúsculas/minúsculas.
+  - **Integração com AWS S3:** Implementação completa da camada de gerenciamento de currículos em nuvem (upload, streaming, download e remoção) via Amazon S3.
+  - **Tratamento Global de Erros:** Criação do `GlobalExceptionHandler` para validação amigável de regras de negócio e captura de erros do AWS SDK.
+  - **Interface Web & UX:** Modal de currículos no React (Vite) e integração visual com o backend.
+  - **Automação & Evidências Visuais:** Script `start.sh` de inicialização e documentação técnica detalhada com GIFs demonstrando as operações em tempo real no **Painel do Console AWS DynamoDB** e no **Bucket AWS S3**.

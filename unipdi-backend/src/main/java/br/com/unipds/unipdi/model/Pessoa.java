@@ -1,18 +1,39 @@
 package br.com.unipds.unipdi.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
-@Document(collection = "pessoas")
+@DynamoDbBean
 public class Pessoa {
-    @Id
-    private String id;
 
-    @Indexed(unique = true) // garante unicidade no MongoDB
     private String matricula;
-
     private String nome;
+    private String curriculo;
+
+    public Pessoa() {
+    }
+
+    public Pessoa(String matricula, String nome) {
+        this.matricula = matricula;
+        this.nome = nome;
+    }
+
+    @DynamoDbPartitionKey
+    public String getMatricula() {
+        return matricula;
+    }
+
+    public void setMatricula(String matricula) {
+        this.matricula = matricula;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
 
     public String getCurriculo() {
         return curriculo;
@@ -22,22 +43,8 @@ public class Pessoa {
         this.curriculo = curriculo;
     }
 
-    private String curriculo;
-
-    public Pessoa(String matricula, String nome) {
-        this.matricula = matricula;
-        this.nome = nome;
-    }
-
     public String getId() {
-        return id;
-    }
-
-    public String getMatricula() {
         return matricula;
     }
-
-    public String getNome() {
-        return nome;
-    }
 }
+

@@ -1,11 +1,14 @@
 package br.com.unipds.unipdi.repository;
 
 import br.com.unipds.unipdi.model.Pessoa;
-import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface PessoaRepository extends MongoRepository<Pessoa, String> {
+public interface PessoaRepository {
+    Pessoa save(Pessoa pessoa);
     Optional<Pessoa> findByMatricula(String matricula);
     boolean existsByMatricula(String matricula);
+    List<Pessoa> findAll();
 }
+
