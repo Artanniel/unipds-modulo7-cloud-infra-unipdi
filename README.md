@@ -25,12 +25,15 @@ A aplicação foi migrada e modernizada para uma arquitetura serverless/cloud-na
 
 ---
 
-## ☁️ **Integração Cloud AWS (DynamoDB & S3)**
+## ☁️ **Integração Cloud AWS (DynamoDB, S3, Lambda, SSM & CloudWatch)**
 
-O sistema opera de forma integrada com a nuvem da AWS:
+O sistema opera de forma integrada e desacoplada com o ecossistema de nuvem da AWS:
 
 1. **AWS DynamoDB**: Armazena as entidades do sistema (`Pessoa` e `Pdi` com metas aninhadas) em tabelas de alta performance (*Pay-Per-Request*).
 2. **AWS S3**: Armazena os arquivos digitais de currículos associados aos usuários com chaves UUID únicas.
+3. **AWS Lambda Serverless (Notificações)**: Integração com o microsserviço [unipds-aws-notification](https://github.com/Artanniel/unipds-aws-notification). Disparado automaticamente por gatilhos de eventos do S3 (`s3:ObjectCreated:*`) para processamento de metadados e envio de e-mails de confirmação.
+4. **AWS Systems Manager (SSM Parameter Store)**: Armazenamento seguro de parâmetros de ambiente e credenciais SMTP (`/notificacao/email/user`, `/notificacao/email/pass`, `/app/email/rh`), eliminando a necessidade de hardcode.
+5. **AWS IAM & CloudWatch Observability**: Políticas de acesso refinadas (`AmazonSSMReadOnlyAccess` + `AWSLambdaBasicExecutionRole`) e rastreamento de logs em tempo real para observabilidade e auditoria.
 
 ---
 
@@ -46,15 +49,49 @@ Animação detalhada demonstrando a sincronização dos registros e requisiçõe
 
 ![Integração em Tempo Real com o Painel AWS DynamoDB](images/ComunicateWithAWS.gif)
 
-### 3. Modal de Gestão de Currículo no Frontend
+### 3. Visão Geral das Tabelas e Registros no AWS DynamoDB
+Operações de listagem, inserção e consulta no console do **AWS DynamoDB**:
+
+![Gerenciamento de Tabelas no AWS DynamoDB](images/AWS_DynamoDB.gif)
+
+### 4. Modal de Gestão de Currículo no Frontend
 Interface Web interativa para upload de novos arquivos de currículo para o S3, acompanhamento de status e ações de download/exclusão:
 
 ![Modal de Upload de Currículo para o AWS S3](images/Upload_S3.png)
 
-### 4. Confirmação de Arquivos no Bucket AWS S3
+### 5. Confirmação de Arquivos no Bucket AWS S3
 Registro dos arquivos armazenados com identificadores únicos (UUID) no bucket do AWS S3:
 
 ![Arquivo Confirmado no Bucket AWS S3](images/fileInS3.png)
+
+---
+
+### 📬 **Evidências do Microsserviço de Notificações Serverless ([unipds-aws-notification](https://github.com/Artanniel/unipds-aws-notification))**
+
+### 6. Fluxo de Evento do S3 e Disparo de Notificação
+Demonstração em vídeo do upload de arquivos no bucket S3 acionando a função AWS Lambda para processamento e envio automático de e-mails de notificação:
+
+![Fluxo de Notificação S3 e AWS Lambda](images/NotificationS3File_2026-08-09%2022-17.gif)
+
+### 7. Função AWS Lambda (`unipds-aws-notification`) e Métricas
+Visão da função AWS Lambda desenvolvida em Java 21, exibindo o gatilho (Trigger) conectado ao Amazon S3 e as métricas de invocação, duração e taxa de êxito no CloudWatch:
+
+![Função AWS Lambda em Java](images/newLambdaWithJavaApplication.png)
+
+### 8. Gestão de Segredos no AWS SSM Parameter Store
+Repositório centralizado de parâmetros seguros do AWS Systems Manager (SSM) armazenando as credenciais de SMTP e e-mails (`/notificacao/email/user`, `/notificacao/email/pass`, `/app/email/rh`):
+
+![AWS SSM Parameter Store](images/awsParametrerStore.png)
+
+### 9. Permissões e Políticas no AWS IAM
+Políticas de acesso refinadas (`AmazonSSMReadOnlyAccess` e `AWSLambdaBasicExecutionRole`) associadas à Role da função Lambda para consulta segura de parâmetros no SSM e gravação de logs:
+
+![Políticas de Acesso IAM](images/newPolicesForSendMail.png)
+
+### 10. Auditoria e Gerenciamento de Logs no AWS CloudWatch
+Logs de execução capturados pelo AWS CloudWatch Logs, garantindo observabilidade total, tratamento de exceções e rastreabilidade de eventos:
+
+![Logs no AWS CloudWatch](images/LogCheckInAwsCloudWatch_2026-08-09%2016-16-10.png)
 
 ---
 
@@ -158,7 +195,7 @@ AWS_S3_BUCKET_NAME=unipdi-bucket
 - **Contribuições & Migração Cloud (Artanniel):**  
   - **Migração Completa para AWS DynamoDB:** Eliminação do MongoDB legado e transição completa para o AWS DynamoDB usando Spring Cloud AWS e DynamoDB Enhanced Client.
   - **Auto-Provisionamento de Tabelas DynamoDB:** Implementação de inicializador automático (`CommandLineRunner`) e resolvedor de nomes de tabela com suporte a maiúsculas/minúsculas.
-  - **Integração com AWS S3:** Implementação completa da camada de gerenciamento de currículos em nuvem (upload, streaming, download e remoção) via Amazon S3.
+  - **Integração com AWS S3 & Notificações:** Implementação completa da camada de gerenciamento de currículos em nuvem (upload, streaming, download e remoção) via Amazon S3, conectada ao microsserviço serverless [unipds-aws-notification](https://github.com/Artanniel/unipds-aws-notification).
   - **Tratamento Global de Erros:** Criação do `GlobalExceptionHandler` para validação amigável de regras de negócio e captura de erros do AWS SDK.
   - **Interface Web & UX:** Modal de currículos no React (Vite) e integração visual com o backend.
   - **Automação & Evidências Visuais:** Script `start.sh` de inicialização e documentação técnica detalhada com GIFs demonstrando as operações em tempo real no **Painel do Console AWS DynamoDB** e no **Bucket AWS S3**.
