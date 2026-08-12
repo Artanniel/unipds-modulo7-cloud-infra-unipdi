@@ -2,7 +2,7 @@
 
 **UniPDI** é uma aplicação desenvolvida para que estudantes e profissionais possam cadastrar e gerenciar seus **Planos de Desenvolvimento Individual (PDI)**, **Metas** e **Currículos** de forma 100% integrada aos serviços em nuvem da **AWS (Amazon Web Services)**.  
 
-Este projeto possui objetivo educacional e prático no âmbito de arquitetura de software, englobando microsserviços, integração com **AWS DynamoDB** (banco NoSQL), **AWS S3** (armazenamento de arquivos em nuvem), **Docker**, **Kubernetes** e **Cloud Computing**.
+Este projeto possui objetivo educacional e prático no âmbito de arquitetura de software, englobando microsserviços, integração com **AWS DynamoDB** (banco NoSQL), **AWS S3** (armazenamento de arquivos em nuvem), **AWS Lambda** (processamento serverless), **AWS SSM**, **AWS CloudWatch**, **AWS Budgets / Billing** (gestão e governança de custos na nuvem), **Docker**, **Kubernetes** e **Cloud Computing**.
 
 ---
 
@@ -25,7 +25,7 @@ A aplicação foi migrada e modernizada para uma arquitetura serverless/cloud-na
 
 ---
 
-## ☁️ **Integração Cloud AWS (DynamoDB, S3, Lambda, SSM & CloudWatch)**
+## ☁️ **Integração Cloud AWS (DynamoDB, S3, Lambda, SSM, CloudWatch & AWS Budgets)**
 
 O sistema opera de forma integrada e desacoplada com o ecossistema de nuvem da AWS:
 
@@ -34,6 +34,7 @@ O sistema opera de forma integrada e desacoplada com o ecossistema de nuvem da A
 3. **AWS Lambda Serverless (Notificações)**: Integração com o microsserviço [unipds-aws-notification](https://github.com/Artanniel/unipds-aws-notification). Disparado automaticamente por gatilhos de eventos do S3 (`s3:ObjectCreated:*`) para processamento de metadados e envio de e-mails de confirmação.
 4. **AWS Systems Manager (SSM Parameter Store)**: Armazenamento seguro de parâmetros de ambiente e credenciais SMTP (`/notificacao/email/user`, `/notificacao/email/pass`, `/app/email/rh`), eliminando a necessidade de hardcode.
 5. **AWS IAM & CloudWatch Observability**: Políticas de acesso refinadas (`AmazonSSMReadOnlyAccess` + `AWSLambdaBasicExecutionRole`) e rastreamento de logs em tempo real para observabilidade e auditoria.
+6. **AWS Billing & AWS Budgets (Governança de Custos)**: Monitoramento proativo de custos na nuvem, criação de orçamentos e regras automatizadas de alertas (thresholds) via e-mail ao atingir patamares definidos de consumo de recursos AWS.
 
 ---
 
@@ -92,6 +93,30 @@ Políticas de acesso refinadas (`AmazonSSMReadOnlyAccess` e `AWSLambdaBasicExecu
 Logs de execução capturados pelo AWS CloudWatch Logs, garantindo observabilidade total, tratamento de exceções e rastreabilidade de eventos:
 
 ![Logs no AWS CloudWatch](images/LogCheckInAwsCloudWatch_2026-08-09%2016-16-10.png)
+
+---
+
+### 💰 **Governança Financeira e Gestão de Custos na Nuvem (AWS Billing & Budgets)**
+
+### 11. Painel do AWS Billing & Cost Management
+Visão geral do gerenciamento financeiro de custos e faturamento da conta AWS:
+
+![Painel AWS Billing & Cost Management](images/BillingAndCostManagement.png)
+
+### 12. Configuração de Orçamentos no AWS Budgets
+Definição de limites orçamentários para controle contínuo dos gastos com infraestrutura na nuvem:
+
+![Configuração de Orçamento no AWS Budgets](images/Or%C3%A7amentoConfig.png)
+
+### 13. Definição de Alertas Orçamentários
+Configuração de regras e limites de disparo (thresholds) para envio automático de alertas de consumo:
+
+![Alertas no AWS Budgets](images/AlertOr%C3%A7amento.png)
+
+### 14. Monitoramento e Notificações de Alertas de Gastos
+Acompanhamento ativo dos orçamentos configurados e status das notificações preventivas de custo:
+
+![Disparo e Status de Alertas de Orçamento](images/AlertOr%C3%A7amento2.png)
 
 ---
 
@@ -198,4 +223,5 @@ AWS_S3_BUCKET_NAME=unipdi-bucket
   - **Integração com AWS S3 & Notificações:** Implementação completa da camada de gerenciamento de currículos em nuvem (upload, streaming, download e remoção) via Amazon S3, conectada ao microsserviço serverless [unipds-aws-notification](https://github.com/Artanniel/unipds-aws-notification).
   - **Tratamento Global de Erros:** Criação do `GlobalExceptionHandler` para validação amigável de regras de negócio e captura de erros do AWS SDK.
   - **Interface Web & UX:** Modal de currículos no React (Vite) e integração visual com o backend.
-  - **Automação & Evidências Visuais:** Script `start.sh` de inicialização e documentação técnica detalhada com GIFs demonstrando as operações em tempo real no **Painel do Console AWS DynamoDB** e no **Bucket AWS S3**.
+  - **Governança Financeira & Gestão de Custos AWS:** Implementação de limites e tetos orçamentários no AWS Budgets, definição de regras de alertas preventivos de consumo e auditoria via AWS Billing e Cost Management.
+  - **Automação & Evidências Visuais:** Script `start.sh` de inicialização e documentação técnica detalhada com GIFs e imagens demonstrando as operações em tempo real no **Painel do Console AWS DynamoDB**, **Bucket AWS S3**, **AWS Lambda**, **CloudWatch** e **AWS Budgets / Billing**.
